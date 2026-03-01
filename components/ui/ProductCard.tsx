@@ -41,8 +41,19 @@ export default function ProductCard({ product, className = '' }: ProductCardProp
           <span
             className="absolute top-3 left-3 text-[9px] tracking-widest uppercase px-2.5 py-1 font-medium z-10"
             style={{
-              backgroundColor: product.badge === 'sale' ? 'var(--gold)' : product.badge === 'new' ? 'var(--charcoal)' : 'var(--blush)',
-              color: product.badge === 'blush' ? 'var(--charcoal)' : 'var(--ivory)',
+                backgroundColor:
+                  product.badge === 'sale'
+                    ? 'var(--gold)'
+                    : product.badge === 'new'
+                    ? 'var(--charcoal)'
+                    : product.badge === 'bestseller'
+                    ? 'var(--blush)'
+                    : 'var(--blush)',
+              
+                color:
+                  product.badge === 'bestseller'
+                    ? 'var(--charcoal)'
+                    : 'var(--ivory)',
             }}
           >
             {product.badge === 'new' ? t('newArrival') : product.badge === 'bestseller' ? t('bestseller') : `-${discount}%`}
