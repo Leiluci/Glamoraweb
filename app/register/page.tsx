@@ -1,0 +1,128 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Eye, EyeOff } from 'lucide-react'
+import SiteLayout from '@/components/layout/SiteLayout'
+import { useLang, useAuth } from '@/components/providers/GlamoraProviders'
+
+export default function RegisterPage() {
+  const { t, lang } = useLang()
+  const { register } = useAuth()
+  const router = useRouter()
+
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', email: '', phone: '',
+    address: '', city: '', country: 'Azerbaijan', password: '', confirmPassword: '',
+  })
+  const [showPw, setShowPw] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (form.password !== form.confirmPassword) {
+      setError(lang === 'az' ? 'Şifrələr uyğun gəlmir' : lang === 'ru' ? 'Пароли не совпадают' : 'Passwords do not match')
+      return
+    }
+    if (form.password.length < 6) {
+      setError(lang === 'az' ? 'Şifrə ən az 6 simvol olmalıdır' : lang === 'ru' ? 'Пароль должен быть не менее 6 символов' : 'Password must be at least 6 characters')
+      return
+    }
+    setLoading(true)
+    await new Promise(r => setTimeout(r, 600))
+    const { confirmPassword: _cp, ...registerPayload } = form
+    const ok = register(registerPayload)
+    setLoading(false)
+    if (ok) {
+      router.push('/profile')
+    } else {
+      setError(lang === 'az' ? 'Bu e-poçt artıq qeydiyyatdan keçib' : lang === 'ru' ? 'Email уже зарегистрирован' : 'This email is already registered')
+    }
+  }
+
+  const fields = [
+    { key: 'firstName', labelKey: 'firstName', type: 'text', placeholder: lang === 'az' ? 'Adınız' : lang === 'ru' ? 'Ваше имя' : 'Your first name' },
+    { key: 'lastName', labelKey: 'lastName', type: 'text', placeholder: lang === 'az' ? 'Soyadınız' : lang === 'ru' ? 'Ваша фамилия' : 'Your last name' },
+    { key: 'email', labelKey: 'email', type: 'email', placeholder: 'email@example.com' },
+    { key: 'phone', labelKey: 'phone', type: 'tel', placeholder: '+994 XX XXX XX XX' },
+    { key: 'city', labelKey: 'city', type: 'text', placeholder: lang === 'az' ? 'Şəhəriniz' : lang === 'ru' ? 'Ваш город' : 'Your city' },
+  ]
+
+  return (
+    <SiteLayout>
+      <div className="min-h-[80vh] flex items-center justify-center px-6 py-16" style={{ backgroundColor: 'var(--cream)' }}>
+        <div className="w-full max-w-[480px] page-enter">
+
+          <div className="text-center mb-10">
+            <Link href="/" className="font-display text-3xl tracking-[0.25em]" style={{ color: 'var(--charcoal)' }}>
+              GLAMORA
+            </Link>
+            <p className="text-[10px] tracking-[0.25em] uppercase mt-1" style={{ color: 'var(--warm-gray)' }}>
+              {t('joinGlamora')}
+            </p>
+          </div>
+
+          <div className="p-8 lg:p-10" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)' }}>
+            <h1 className="font-display text-2xl font-light mb-8 text-center" style={{ color: 'var(--charcoal)' }}>
+              {t('createAccount')}
+            </h1>
+
+            {error && (
+              <div className="mb-6 px-4 py-3 text-xs text-center" style={{ backgroundColor: 'rgba(192,86,74,0.08)', border: '1px solid rgba(192,86,74,0.2)', color: '#C0564A' }}>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                {fields.slice(0, 2).map(f => (
+                  <div key={f.key}>
+                    <label className="block text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--warm-gray)' }}>{t(f.labelKey as any)}</label>
+                    <input type={f.type} value={(form as any)[f.key]} onChange={set(f.key)} required className="input-luxury" placeholder={f.placeholder} />
+                  </div>
+                ))}
+              </div>
+
+              {fields.slice(2).map(f => (
+                <div key={f.key}>
+                  <label className="block text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--warm-gray)' }}>{t(f.labelKey as any)}</label>
+                  <input type={f.type} value={(form as any)[f.key]} onChange={set(f.key)} required className="input-luxury" placeholder={f.placeholder} />
+                </div>
+              ))}
+
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--warm-gray)' }}>{t('password')}</label>
+                <div className="relative">
+                  <input type={showPw ? 'text' : 'password'} value={form.password} onChange={set('password')} required className="input-luxury pr-10" placeholder="••••••••" minLength={6} />
+                  <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-0 top-1/2 -translate-y-1/2 p-1" style={{ color: 'var(--warm-gray)' }}>
+                    {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--warm-gray)' }}>{t('confirmPassword')}</label>
+                <input type="password" value={form.confirmPassword} onChange={set('confirmPassword')} required className="input-luxury" placeholder="••••••••" />
+              </div>
+
+              <button type="submit" disabled={loading} className="btn-gold w-full justify-center mt-2" style={{ opacity: loading ? 0.7 : 1 }}>
+                {loading ? (lang === 'az' ? 'Qeydiyyat...' : lang === 'ru' ? 'Регистрация...' : 'Creating...') : t('signUp')}
+              </button>
+            </form>
+
+            <p className="text-center text-xs mt-6" style={{ color: 'var(--warm-gray)' }}>
+              {t('hasAccount')}{' '}
+              <Link href="/login" className="font-medium transition-colors" style={{ color: 'var(--gold)' }}>{t('signIn')}</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </SiteLayout>
+  )
+}
